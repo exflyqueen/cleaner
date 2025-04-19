@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>我的影片與遊戲頁面</title>
+  <title>我的影片頁面</title>
   <style>
     body {
       font-family: sans-serif;
@@ -14,18 +14,33 @@
       max-width: 90%;
       border-radius: 16px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      margin-bottom: 40px;
     }
-    #game {
-      margin-top: 60px;
+    #quiz {
+      background: #fff;
+      border-radius: 16px;
       padding: 20px;
-      background: #ffffff;
-      border: 2px dashed #ccc;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
-    canvas {
-      border: 2px solid #333;
-      margin-top: 20px;
+    button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background-color: #e0e0e0;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #d0d0d0;
+    }
+    #feedback {
+      font-weight: bold;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -36,27 +51,77 @@
     您的瀏覽器不支援影片播放。
   </video>
 
-  <div id="game">
-    <h2>🎮 小遊戲區</h2>
-    <p>這裡可以玩你自己寫的遊戲～</p>
-    <canvas id="gameCanvas" width="300" height="300"></canvas>
+  <div id="quiz">
+    <h2 id="question">題目載入中...</h2>
+    <div id="answers"></div>
+    <p id="feedback"></p>
   </div>
 
   <script>
-    // 這是一個簡單的 JS 範例：點擊畫面會畫出小圓點
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const questions = [
+      {
+        question: "太陽是什麼類型的天體？",
+        options: ["行星", "恆星", "衛星", "彗星"],
+        answer: "恆星"
+      },
+      {
+        question: "水的沸點是幾度？",
+        options: ["50°C", "90°C", "100°C", "150°C"],
+        answer: "100°C"
+      },
+      {
+        question: "地球有幾個月亮？",
+        options: ["1", "2", "5", "沒有"],
+        answer: "1"
+      }
+    ];
 
-    canvas.addEventListener("click", (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    let currentQuestion = 0;
+    let score = 0;
 
-      ctx.beginPath();
-      ctx.arc(x, y, 10, 0, Math.PI * 2);
-      ctx.fillStyle = "skyblue";
-      ctx.fill();
-    });
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const feedbackEl = document.getElementById("feedback");
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      questionEl.textContent = q.question;
+      answersEl.innerHTML = "";
+      feedbackEl.textContent = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option);
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const correct = questions[currentQuestion].answer;
+      if (selected === correct) {
+        feedbackEl.textContent = "✅ 答對了！";
+        score++;
+      } else {
+        feedbackEl.textContent = `❌ 答錯了！正確答案是：${correct}`;
+      }
+      currentQuestion++;
+      setTimeout(() => {
+        if (currentQuestion < questions.length) {
+          showQuestion();
+        } else {
+          showResult();
+        }
+      }, 1000);
+    }
+
+    function showResult() {
+      questionEl.textContent = "遊戲結束！";
+      answersEl.innerHTML = "";
+      feedbackEl.textContent = `你總共答對了 ${score} 題，共 ${questions.length} 題！🎉`;
+    }
+
+    showQuestion();
   </script>
 </body>
 </html>
