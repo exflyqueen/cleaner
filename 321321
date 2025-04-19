@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>我的影片展示</title>
+</head>
+<body>
+  <h1>影片展示</h1>
+  <video width="640" height="360" controls>
+    <source src="video/myvideo.mp4" type="video/mp4" />
+    您的瀏覽器不支援影片播放。
+  </video>
+</body>
+</html>
