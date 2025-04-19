@@ -51,13 +51,47 @@
       font-weight: bold;
     }
 
-    #game-preview {
-      margin-top: 50px;
+    /* 遊戲區塊 */
+    #game-container {
+      position: relative;
+      width: 600px;
+      height: 200px;
+      margin: 50px auto;
+      border: 2px solid #444;
+      background: #ffffff;
+      overflow: hidden;
     }
 
-    #cleaner-character {
-      width: 150px;
-      height: auto;
+    #cleaner {
+      position: absolute;
+      bottom: 0;
+      left: 50px;
+      width: 50px;
+      height: 50px;
+    }
+
+    .obstacle {
+      position: absolute;
+      bottom: 0;
+      right: -50px;
+      width: 30px;
+      height: 50px;
+      background: red;
+    }
+
+    #score {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .jump {
+      animation: jump 0.5s ease-out;
+    }
+
+    @keyframes jump {
+      0% { bottom: 0; }
+      50% { bottom: 100px; }
+      100% { bottom: 0; }
     }
   </style>
 </head>
@@ -76,14 +110,19 @@
     <div id="result"></div>
   </div>
 
-  <!-- 遊戲角色展示區 -->
-  <div id="game-preview">
-    <h2>遊戲角色展示（清潔員）</h2>
-    <img id="cleaner-character" src="cleaner-boy.png" alt="Cleaner Boy">
-    <p>這是我們未來遊戲的主角！</p>
+  <!-- 跳躍遊戲 -->
+  <div id="game-section">
+    <h2>清潔員跳躍遊戲 🧼</h2>
+    <p>按「空白鍵」跳躍，避免撞到障礙物！</p>
+    <div id="game-container">
+      <img id="cleaner" src="cleaner-boy.png" alt="Cleaner Boy">
+    </div>
+    <div id="score">分數：0</div>
+    <div id="game-over" style="color:red; font-weight:bold; display:none;">💥 遊戲結束！請重新整理頁面</div>
   </div>
 
   <script>
+    // 問答部分
     const quizData = [
       {
         question: "哪一項是太陽系中的行星？",
@@ -120,6 +159,79 @@
     }
 
     window.onload = loadQuestion;
+
+    // 跳躍遊戲部分
+    const cleaner = document.getElementById('cleaner');
+    const gameContainer = document.getElementById('game-container');
+    const scoreDisplay = document.getElementById('score');
+    const gameOverText = document.getElementById('game-over');
+
+    let score = 0;
+    let jumping = false;
+    let gameOver = false;
+
+    function jump() {
+      if (jumping || gameOver) return;
+      jumping = true;
+      cleaner.classList.add('jump');
+      setTimeout(() => {
+        cleaner.classList.remove('jump');
+        jumping = false;
+      }, 500);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        jump();
+      }
+    });
+
+    function createObstacle() {
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+      gameContainer.appendChild(obstacle);
+
+      let left = gameContainer.offsetWidth;
+      const interval = setInterval(() => {
+        if (gameOver) {
+          clearInterval(interval);
+          obstacle.remove();
+          return;
+        }
+
+        left -= 5;
+        obstacle.style.right = (gameContainer.offsetWidth - left) + 'px';
+
+        const cleanerRect = cleaner.getBoundingClientRect();
+        const obsRect = obstacle.getBoundingClientRect();
+
+        if (
+          obsRect.left < cleanerRect.right &&
+          obsRect.right > cleanerRect.left &&
+          obsRect.bottom > cleanerRect.bottom - 10
+        ) {
+          gameOver = true;
+          gameOverText.style.display = 'block';
+          clearInterval(interval);
+        }
+
+        if (left < -30) {
+          clearInterval(interval);
+          obstacle.remove();
+          if (!gameOver) {
+            score++;
+            scoreDisplay.innerText = "分數：" + score;
+          }
+        }
+      }, 20);
+
+      if (!gameOver) {
+        setTimeout(createObstacle, Math.random() * 1500 + 1000);
+      }
+    }
+
+    setTimeout(createObstacle, 2000);
   </script>
 
 </body>
