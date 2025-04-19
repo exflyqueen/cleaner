@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>我的影片頁面</title>
+  <title>我的影片與遊戲頁面</title>
   <style>
     body {
       font-family: sans-serif;
@@ -10,118 +10,117 @@
       padding: 40px;
       background: #f9f9f9;
     }
+
     video {
       max-width: 90%;
       border-radius: 16px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      margin-bottom: 40px;
     }
-    #quiz {
-      background: #fff;
-      border-radius: 16px;
+
+    #quiz-container {
+      margin-top: 50px;
       padding: 20px;
-      max-width: 600px;
-      margin: 0 auto;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      background: white;
+      border-radius: 16px;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    button {
+
+    .question {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+    }
+
+    .answers button {
       display: block;
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 8px;
+      margin: 8px auto;
+      padding: 10px 20px;
       border: none;
-      background-color: #e0e0e0;
+      background: #007BFF;
+      color: white;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 16px;
     }
-    button:hover {
-      background-color: #d0d0d0;
+
+    .answers button:hover {
+      background: #0056b3;
     }
-    #feedback {
+
+    #result {
+      margin-top: 15px;
       font-weight: bold;
-      margin-top: 10px;
+    }
+
+    #game-preview {
+      margin-top: 50px;
+    }
+
+    #cleaner-character {
+      width: 150px;
+      height: auto;
     }
   </style>
 </head>
 <body>
+
   <h1>影片 🎬</h1>
   <video controls>
     <source src="video.mp4" type="video/mp4">
     您的瀏覽器不支援影片播放。
   </video>
 
-  <div id="quiz">
-    <h2 id="question">題目載入中...</h2>
-    <div id="answers"></div>
-    <p id="feedback"></p>
+  <!-- 問答遊戲 -->
+  <div id="quiz-container">
+    <div class="question" id="question">問題載入中...</div>
+    <div class="answers" id="answers"></div>
+    <div id="result"></div>
+  </div>
+
+  <!-- 遊戲角色展示區 -->
+  <div id="game-preview">
+    <h2>遊戲角色展示（清潔員）</h2>
+    <img id="cleaner-character" src="cleaner-boy.png" alt="Cleaner Boy">
+    <p>這是我們未來遊戲的主角！</p>
   </div>
 
   <script>
-    const questions = [
+    const quizData = [
       {
-        question: "太陽是什麼類型的天體？",
-        options: ["行星", "恆星", "衛星", "彗星"],
-        answer: "恆星"
+        question: "哪一項是太陽系中的行星？",
+        answers: ["月亮", "火星", "冥王星", "彗星"],
+        correct: 1
       },
       {
-        question: "水的沸點是幾度？",
-        options: ["50°C", "90°C", "100°C", "150°C"],
-        answer: "100°C"
-      },
-      {
-        question: "地球有幾個月亮？",
-        options: ["1", "2", "5", "沒有"],
-        answer: "1"
+        question: "HTML 是什麼的縮寫？",
+        answers: ["Hyper Text Markup Language", "High Tech Machine Learning", "Hot Tea Milk Latte", "Home Tool Media Layout"],
+        correct: 0
       }
     ];
 
-    let currentQuestion = 0;
-    let score = 0;
+    let current = 0;
 
-    const questionEl = document.getElementById("question");
-    const answersEl = document.getElementById("answers");
-    const feedbackEl = document.getElementById("feedback");
-
-    function showQuestion() {
-      const q = questions[currentQuestion];
-      questionEl.textContent = q.question;
-      answersEl.innerHTML = "";
-      feedbackEl.textContent = "";
-
-      q.options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.textContent = option;
-        btn.onclick = () => checkAnswer(option);
-        answersEl.appendChild(btn);
+    function loadQuestion() {
+      const q = quizData[current];
+      document.getElementById('question').innerText = q.question;
+      const answersDiv = document.getElementById('answers');
+      answersDiv.innerHTML = '';
+      q.answers.forEach((ans, i) => {
+        const btn = document.createElement('button');
+        btn.innerText = ans;
+        btn.onclick = () => {
+          const result = document.getElementById('result');
+          if (i === q.correct) {
+            result.innerText = "✅ 答對了！";
+          } else {
+            result.innerText = "❌ 答錯了，再試一次！";
+          }
+        };
+        answersDiv.appendChild(btn);
       });
     }
 
-    function checkAnswer(selected) {
-      const correct = questions[currentQuestion].answer;
-      if (selected === correct) {
-        feedbackEl.textContent = "✅ 答對了！";
-        score++;
-      } else {
-        feedbackEl.textContent = `❌ 答錯了！正確答案是：${correct}`;
-      }
-      currentQuestion++;
-      setTimeout(() => {
-        if (currentQuestion < questions.length) {
-          showQuestion();
-        } else {
-          showResult();
-        }
-      }, 1000);
-    }
-
-    function showResult() {
-      questionEl.textContent = "遊戲結束！";
-      answersEl.innerHTML = "";
-      feedbackEl.textContent = `你總共答對了 ${score} 題，共 ${questions.length} 題！🎉`;
-    }
-
-    showQuestion();
+    window.onload = loadQuestion;
   </script>
+
 </body>
 </html>
