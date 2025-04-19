@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>我的影片頁面</title>
+  <title>我的影片與遊戲頁面</title>
   <style>
     body {
       font-family: sans-serif;
@@ -15,13 +15,48 @@
       border-radius: 16px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
+    #game {
+      margin-top: 60px;
+      padding: 20px;
+      background: #ffffff;
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    canvas {
+      border: 2px solid #333;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>影片 🎬</h1>
-<video controls>
-  <source src="video.mp4" type="video/mp4">
-  您的瀏覽器不支援影片播放。
-</video>
+  <video controls>
+    <source src="video.mp4" type="video/mp4">
+    您的瀏覽器不支援影片播放。
+  </video>
+
+  <div id="game">
+    <h2>🎮 小遊戲區</h2>
+    <p>這裡可以玩你自己寫的遊戲～</p>
+    <canvas id="gameCanvas" width="300" height="300"></canvas>
+  </div>
+
+  <script>
+    // 這是一個簡單的 JS 範例：點擊畫面會畫出小圓點
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = "skyblue";
+      ctx.fill();
+    });
+  </script>
 </body>
 </html>
