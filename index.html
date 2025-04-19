@@ -51,14 +51,14 @@
       font-weight: bold;
     }
 
-    /* 遊戲區塊 */
+    /* 跳躍遊戲區塊 */
     #game-container {
       position: relative;
       width: 600px;
       height: 200px;
       margin: 50px auto;
       border: 2px solid #444;
-      background: #ffffff;
+      background: #e0f7fa;
       overflow: hidden;
     }
 
@@ -68,6 +68,7 @@
       left: 50px;
       width: 50px;
       height: 50px;
+      transition: bottom 0.1s;
     }
 
     .obstacle {
@@ -76,22 +77,19 @@
       right: -50px;
       width: 30px;
       height: 50px;
-      background: red;
+      background: crimson;
+      animation: moveObstacle 4s linear infinite;
+    }
+
+    @keyframes moveObstacle {
+      from { right: -50px; }
+      to { right: 650px; }
     }
 
     #score {
       margin-top: 10px;
+      font-size: 18px;
       font-weight: bold;
-    }
-
-    .jump {
-      animation: jump 0.5s ease-out;
-    }
-
-    @keyframes jump {
-      0% { bottom: 0; }
-      50% { bottom: 100px; }
-      100% { bottom: 0; }
     }
   </style>
 </head>
@@ -103,135 +101,86 @@
     您的瀏覽器不支援影片播放。
   </video>
 
-  <!-- 問答遊戲 -->
   <div id="quiz-container">
-    <div class="question" id="question">問題載入中...</div>
-    <div class="answers" id="answers"></div>
+    <div class="question">地球是第幾顆行星？</div>
+    <div class="answers">
+      <button onclick="checkAnswer(false)">第一</button>
+      <button onclick="checkAnswer(false)">第二</button>
+      <button onclick="checkAnswer(true)">第三</button>
+    </div>
     <div id="result"></div>
   </div>
 
-  <!-- 跳躍遊戲 -->
-  <div id="game-section">
-    <h2>清潔員跳躍遊戲 🧼</h2>
-    <p>按「空白鍵」跳躍，避免撞到障礙物！</p>
-    <div id="game-container">
-      <img id="cleaner" src="cleaner-boy.png" alt="Cleaner Boy">
-    </div>
-    <div id="score">分數：0</div>
-    <div id="game-over" style="color:red; font-weight:bold; display:none;">💥 遊戲結束！請重新整理頁面</div>
+  <h2>跳躍遊戲 🕹️</h2>
+  <div id="game-container">
+    <img id="cleaner" src="cleaner-boy.png" alt="cleaner boy">
+    <div class="obstacle" id="obstacle"></div>
   </div>
+  <div id="score">分數：0</div>
 
   <script>
-    // 問答部分
-    const quizData = [
-      {
-        question: "哪一項是太陽系中的行星？",
-        answers: ["月亮", "火星", "冥王星", "彗星"],
-        correct: 1
-      },
-      {
-        question: "HTML 是什麼的縮寫？",
-        answers: ["Hyper Text Markup Language", "High Tech Machine Learning", "Hot Tea Milk Latte", "Home Tool Media Layout"],
-        correct: 0
-      }
-    ];
-
-    let current = 0;
-
-    function loadQuestion() {
-      const q = quizData[current];
-      document.getElementById('question').innerText = q.question;
-      const answersDiv = document.getElementById('answers');
-      answersDiv.innerHTML = '';
-      q.answers.forEach((ans, i) => {
-        const btn = document.createElement('button');
-        btn.innerText = ans;
-        btn.onclick = () => {
-          const result = document.getElementById('result');
-          if (i === q.correct) {
-            result.innerText = "✅ 答對了！";
-          } else {
-            result.innerText = "❌ 答錯了，再試一次！";
-          }
-        };
-        answersDiv.appendChild(btn);
-      });
+    // 問答功能
+    function checkAnswer(isCorrect) {
+      const result = document.getElementById("result");
+      result.textContent = isCorrect ? "答對了！🎉" : "答錯了，再試試看！";
     }
 
-    window.onload = loadQuestion;
+    // 遊戲控制
+    const cleaner = document.getElementById("cleaner");
+    const obstacle = document.getElementById("obstacle");
+    const scoreEl = document.getElementById("score");
 
-    // 跳躍遊戲部分
-    const cleaner = document.getElementById('cleaner');
-    const gameContainer = document.getElementById('game-container');
-    const scoreDisplay = document.getElementById('score');
-    const gameOverText = document.getElementById('game-over');
-
-    let score = 0;
     let jumping = false;
-    let gameOver = false;
+    let score = 0;
 
     function jump() {
-      if (jumping || gameOver) return;
+      if (jumping) return;
       jumping = true;
-      cleaner.classList.add('jump');
-      setTimeout(() => {
-        cleaner.classList.remove('jump');
-        jumping = false;
-      }, 500);
-    }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        jump();
-      }
-    });
-
-    function createObstacle() {
-      const obstacle = document.createElement('div');
-      obstacle.classList.add('obstacle');
-      gameContainer.appendChild(obstacle);
-
-      let left = gameContainer.offsetWidth;
-      const interval = setInterval(() => {
-        if (gameOver) {
-          clearInterval(interval);
-          obstacle.remove();
-          return;
-        }
-
-        left -= 5;
-        obstacle.style.right = (gameContainer.offsetWidth - left) + 'px';
-
-        const cleanerRect = cleaner.getBoundingClientRect();
-        const obsRect = obstacle.getBoundingClientRect();
-
-        if (
-          obsRect.left < cleanerRect.right &&
-          obsRect.right > cleanerRect.left &&
-          obsRect.bottom > cleanerRect.bottom - 10
-        ) {
-          gameOver = true;
-          gameOverText.style.display = 'block';
-          clearInterval(interval);
-        }
-
-        if (left < -30) {
-          clearInterval(interval);
-          obstacle.remove();
-          if (!gameOver) {
-            score++;
-            scoreDisplay.innerText = "分數：" + score;
-          }
+      let jumpHeight = 120; // 跳更高
+      let position = 0;
+      const upInterval = setInterval(() => {
+        if (position >= jumpHeight) {
+          clearInterval(upInterval);
+          const downInterval = setInterval(() => {
+            if (position <= 0) {
+              clearInterval(downInterval);
+              jumping = false;
+            } else {
+              position -= 5;
+              cleaner.style.bottom = position + "px";
+            }
+          }, 20);
+        } else {
+          position += 6;
+          cleaner.style.bottom = position + "px";
         }
       }, 20);
+    }
 
-      if (!gameOver) {
-        setTimeout(createObstacle, Math.random() * 1500 + 1000);
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") jump();
+    });
+
+    function checkCollision() {
+      const cleanerBox = cleaner.getBoundingClientRect();
+      const obstacleBox = obstacle.getBoundingClientRect();
+
+      if (
+        cleanerBox.right - 10 > obstacleBox.left &&
+        cleanerBox.left + 10 < obstacleBox.right &&
+        cleanerBox.bottom - 10 > obstacleBox.top
+      ) {
+        alert("遊戲結束！你得了 " + score + " 分！");
+        score = 0;
       }
     }
 
-    setTimeout(createObstacle, 2000);
+    setInterval(() => {
+      checkCollision();
+      score++;
+      scoreEl.textContent = "分數：" + score;
+    }, 100);
   </script>
 
 </body>
