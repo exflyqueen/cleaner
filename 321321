@@ -2,12 +2,25 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>我的影片展示</title>
+  <title>我的影片頁面</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: #f9f9f9;
+    }
+    video {
+      max-width: 90%;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
-  <h1>影片展示</h1>
-  <video width="640" height="360" controls>
-    <source src="video/myvideo.mp4" type="video/mp4" />
+  <h1>影片展示 🎬</h1>
+  <video controls>
+    <source src="IMG_0769.mp4" type="video/mp4" />
     您的瀏覽器不支援影片播放。
   </video>
 </body>
