@@ -8,8 +8,8 @@
       margin: 0;
       font-family: sans-serif;
       background: repeating-linear-gradient(
-        rgba(255, 255, 255, 0.8),
-        rgba(255, 255, 255, 0.8) 100px
+        rgba(255, 255, 255, 0.85),
+        rgba(255, 255, 255, 0.85) 100px
       ),
       url('LOGO.jpg');
       background-size: 150px auto;
@@ -87,25 +87,14 @@
       margin: 10px auto;
       padding: 10px 20px;
     }
-    /* 清潔任務遊戲 */
-    .cleaning-game {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 40px;
-      margin-top: 30px;
-    }
-    .draggable {
-      width: 80px;
-      cursor: grab;
-    }
-    .dropzone {
-      width: 160px;
-      border: 3px dashed #aaa;
+    /* 清潔任務遊戲區塊 */
+    .cleaning-task {
+      background: #f8f8ff;
+      padding: 40px 20px;
       border-radius: 12px;
-      padding: 10px;
-      background-color: #f8f8f8;
+      margin: 40px auto;
+      max-width: 800px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
   </style>
 </head>
@@ -155,17 +144,20 @@
 <div class="separator"></div>
 
 <section>
-  <h2>🧽 清潔任務小遊戲</h2>
-  <p>請拖動消毒用品到髒亂的病床上進行清潔</p>
-  <div class="cleaning-game">
-    <img id="dirtyBed" src="dirty-bed.png" alt="髒床" class="dropzone">
-    <img id="cleanItem" src="clean-spray.png" alt="消毒噴霧" draggable="true" class="draggable">
+  <h2>🧼 清潔任務小遊戲（試作版）</h2>
+  <div class="cleaning-task">
+    <p>主角是一位 Q 版清潔員，今天的任務是消毒病房與護理站。</p>
+    <p><strong>操作提示：</strong>請將「拖拉物件」拖到對應區域（功能尚未啟用，預留未來功能）。</p>
+    <ul>
+      <li>🛏 病人轉床後，需要拖拉酒精棉片至床位。</li>
+      <li>🚮 地上有垃圾時需拖拉進垃圾桶。</li>
+      <li>🧽 每完成一區域，得分 +1。</li>
+    </ul>
+    <p>此區為情境式互動模組預留，可進一步擴展成拖曳互動。</p>
   </div>
-  <p id="cleaningResult"></p>
 </section>
 
 <script>
-  // 跳躍遊戲
   const gameArea = document.getElementById('gameArea');
   const character = document.getElementById('character');
   const startBtn = document.getElementById('startBtn');
@@ -175,7 +167,7 @@
   let jumping = false;
   let gameRunning = false;
   let obstacleInterval;
-  let obstacleSpeed = 1.5;
+  let obstacleSpeed = 1.2; // 降低速度
   let continueAfterQA = false;
 
   function jump() {
@@ -207,11 +199,13 @@
     gameRunning = true;
     createObstacle();
     document.addEventListener('keydown', jump);
+    gameArea.addEventListener('touchstart', jump); // 手機支援
   }
 
   function endGame() {
     gameRunning = false;
     document.removeEventListener('keydown', jump);
+    gameArea.removeEventListener('touchstart', jump);
     clearInterval(obstacleInterval);
     alert('遊戲結束');
   }
@@ -247,7 +241,7 @@
         left -= obstacleSpeed;
         obstacle.style.left = left + '%';
 
-        const characterBottom = parseInt(character.style.bottom.replace("px", ""));
+        const characterBottom = parseInt(character.style.bottom.replace("px", "")) || 0;
         if (left < 12 && left > 5 && characterBottom < 50) {
           clearInterval(move);
           showQA();
@@ -278,6 +272,7 @@
     }
   }
 
+  // 問答選項互動（一般問答）
   const quizButtons = document.querySelectorAll(".question-box .option-btn");
   quizButtons.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -291,21 +286,6 @@
 
   startBtn.addEventListener("click", startGame);
   restartBtn.addEventListener("click", restartGame);
-
-  // 清潔任務拖拉互動
-  const cleanItem = document.getElementById("cleanItem");
-  const dirtyBed = document.getElementById("dirtyBed");
-  const resultText = document.getElementById("cleaningResult");
-
-  dirtyBed.addEventListener("dragover", e => {
-    e.preventDefault();
-  });
-
-  dirtyBed.addEventListener("drop", e => {
-    e.preventDefault();
-    resultText.innerText = "清潔成功！床鋪已完成消毒 🧼";
-    dirtyBed.src = "clean-bed.png";
-  });
 </script>
 
 </body>
