@@ -1,186 +1,235 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>我的影片與遊戲頁面</title>
+  <meta charset="UTF-8">
+  <title>Cleaner Boy 網頁</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: "Microsoft JhengHei", sans-serif;
       text-align: center;
-      padding: 40px;
-      background: #f9f9f9;
+      background-image: url('LOGO.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-top: 40px;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.8);
+      margin: 20px auto;
+      padding: 20px;
+      width: 80%;
+      border-radius: 15px;
+    }
+
+    .flower {
+      margin: 20px auto;
+      width: 100px;
+      height: 100px;
+      background: url('https://cdn.pixabay.com/photo/2014/04/03/11/50/flower-312419_960_720.png') no-repeat center center;
+      background-size: contain;
     }
 
     video {
       max-width: 90%;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      border-radius: 10px;
     }
 
-    #quiz-container {
-      margin-top: 50px;
-      padding: 20px;
-      background: white;
-      border-radius: 16px;
-      display: inline-block;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    .quiz {
+      margin-top: 20px;
     }
 
-    .question {
-      font-size: 1.2em;
-      margin-bottom: 15px;
-    }
-
-    .answers button {
-      display: block;
-      margin: 8px auto;
+    .quiz button {
+      margin: 5px;
       padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
       border: none;
-      background: #007BFF;
+      background-color: #3498db;
       color: white;
-      border-radius: 8px;
       cursor: pointer;
     }
 
-    .answers button:hover {
-      background: #0056b3;
+    .quiz button:hover {
+      background-color: #2980b9;
     }
 
-    #result {
-      margin-top: 15px;
-      font-weight: bold;
+    canvas {
+      background-color: #dff6ff;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid #333;
     }
 
-    /* 跳躍遊戲區塊 */
-    #game-container {
-      position: relative;
-      width: 600px;
-      height: 200px;
-      margin: 50px auto;
-      border: 2px solid #444;
-      background: #e0f7fa;
-      overflow: hidden;
+    #gameButtons {
+      margin: 10px;
     }
 
-    #cleaner {
-      position: absolute;
-      bottom: 0;
-      left: 50px;
-      width: 50px;
-      height: 50px;
-      transition: bottom 0.1s;
+    #gameButtons button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      background-color: #2ecc71;
+      color: white;
+      cursor: pointer;
     }
 
-    .obstacle {
-      position: absolute;
-      bottom: 0;
-      right: -50px;
-      width: 30px;
-      height: 50px;
-      background: crimson;
-      animation: moveObstacle 4s linear infinite;
-    }
-
-    @keyframes moveObstacle {
-      from { right: -50px; }
-      to { right: 650px; }
-    }
-
-    #score {
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: bold;
+    #gameButtons button:hover {
+      background-color: #27ae60;
     }
   </style>
 </head>
 <body>
 
-  <h1>影片 🎬</h1>
-  <video controls>
-    <source src="video.mp4" type="video/mp4">
-    您的瀏覽器不支援影片播放。
-  </video>
+  <!-- 影片區 -->
+  <div class="section">
+    <h2>影片 🎥</h2>
+    <video controls>
+      <source src="video.mp4" type="video/mp4">
+      您的瀏覽器不支援影片播放。
+    </video>
+  </div>
 
-  <div id="quiz-container">
-    <div class="question">地球是第幾顆行星？</div>
-    <div class="answers">
-      <button onclick="checkAnswer(false)">第一</button>
-      <button onclick="checkAnswer(false)">第二</button>
-      <button onclick="checkAnswer(true)">第三</button>
+  <div class="flower"></div>
+
+  <!-- 問答區 -->
+  <div class="section">
+    <h2>地理問答 🧠</h2>
+    <div class="quiz">
+      <p>地球是第幾顆行星？</p>
+      <button onclick="alert('答對了！')">第三</button>
+      <button onclick="alert('答錯了！')">第一</button>
+      <button onclick="alert('答錯了！')">第二</button>
     </div>
-    <div id="result"></div>
   </div>
 
-  <h2>跳躍遊戲 🕹️</h2>
-  <div id="game-container">
-    <img id="cleaner" src="cleaner-boy.png" alt="cleaner boy">
-    <div class="obstacle" id="obstacle"></div>
+  <div class="flower"></div>
+
+  <!-- 跳躍遊戲區 -->
+  <div class="section">
+    <h2>跳躍遊戲 🎮</h2>
+    <div id="gameButtons">
+      <button onclick="startGame()">開始遊戲</button>
+      <button onclick="restartGame()">重新開始</button>
+    </div>
+    <canvas id="gameCanvas" width="600" height="200"></canvas>
+    <p id="score">分數：0</p>
   </div>
-  <div id="score">分數：0</div>
 
   <script>
-    // 問答功能
-    function checkAnswer(isCorrect) {
-      const result = document.getElementById("result");
-      result.textContent = isCorrect ? "答對了！🎉" : "答錯了，再試試看！";
-    }
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    // 遊戲控制
-    const cleaner = document.getElementById("cleaner");
-    const obstacle = document.getElementById("obstacle");
-    const scoreEl = document.getElementById("score");
+    const cleanerBoy = new Image();
+    cleanerBoy.src = "cleaner-boy.png";
 
-    let jumping = false;
+    const obstacles = [
+      { src: "trash2.png", image: new Image() },
+      { src: "trash3.png", image: new Image() },
+      { src: "trash4.png", image: new Image() }
+    ];
+    obstacles.forEach(obj => obj.image.src = obj.src);
+
+    let player = { x: 50, y: 150, width: 40, height: 40, vy: 0, jumping: false };
+    let currentObstacles = [];
     let score = 0;
+    let gameInterval;
+    let gravity = 1.5;
 
-    function jump() {
-      if (jumping) return;
-      jumping = true;
-
-      let jumpHeight = 120; // 跳更高
-      let position = 0;
-      const upInterval = setInterval(() => {
-        if (position >= jumpHeight) {
-          clearInterval(upInterval);
-          const downInterval = setInterval(() => {
-            if (position <= 0) {
-              clearInterval(downInterval);
-              jumping = false;
-            } else {
-              position -= 5;
-              cleaner.style.bottom = position + "px";
-            }
-          }, 20);
-        } else {
-          position += 6;
-          cleaner.style.bottom = position + "px";
-        }
-      }, 20);
+    function drawPlayer() {
+      ctx.drawImage(cleanerBoy, player.x, player.y, player.width, player.height);
     }
 
-    document.addEventListener("keydown", e => {
-      if (e.code === "Space") jump();
-    });
+    function createObstacle() {
+      const rand = Math.floor(Math.random() * obstacles.length);
+      return {
+        x: canvas.width,
+        y: 160,
+        width: 30,
+        height: 30,
+        image: obstacles[rand].image
+      };
+    }
 
-    function checkCollision() {
-      const cleanerBox = cleaner.getBoundingClientRect();
-      const obstacleBox = obstacle.getBoundingClientRect();
+    function drawObstacles() {
+      currentObstacles.forEach(obs => {
+        ctx.drawImage(obs.image, obs.x, obs.y, obs.width, obs.height);
+      });
+    }
 
-      if (
-        cleanerBox.right - 10 > obstacleBox.left &&
-        cleanerBox.left + 10 < obstacleBox.right &&
-        cleanerBox.bottom - 10 > obstacleBox.top
-      ) {
-        alert("遊戲結束！你得了 " + score + " 分！");
-        score = 0;
+    function updateGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawObstacles();
+
+      player.y += player.vy;
+      player.vy += gravity;
+
+      if (player.y > 150) {
+        player.y = 150;
+        player.vy = 0;
+        player.jumping = false;
+      }
+
+      currentObstacles.forEach((obs, index) => {
+        obs.x -= 5;
+        if (obs.x + obs.width < 0) {
+          currentObstacles.splice(index, 1);
+          score++;
+          document.getElementById("score").textContent = "分數：" + score;
+        }
+
+        if (
+          player.x < obs.x + obs.width &&
+          player.x + player.width > obs.x &&
+          player.y < obs.y + obs.height &&
+          player.y + player.height > obs.y
+        ) {
+          clearInterval(gameInterval);
+          alert("遊戲結束！總分：" + score);
+        }
+      });
+
+      if (Math.random() < 0.02) {
+        currentObstacles.push(createObstacle());
       }
     }
 
-    setInterval(() => {
-      checkCollision();
-      score++;
-      scoreEl.textContent = "分數：" + score;
-    }, 100);
+    function jump() {
+      if (!player.jumping) {
+        player.vy = -20;
+        player.jumping = true;
+      }
+    }
+
+    function startGame() {
+      document.addEventListener("keydown", e => {
+        if (e.code === "Space") jump();
+      });
+      if (!gameInterval) {
+        gameInterval = setInterval(updateGame, 30);
+      }
+    }
+
+    function restartGame() {
+      clearInterval(gameInterval);
+      player.y = 150;
+      player.vy = 0;
+      player.jumping = false;
+      currentObstacles = [];
+      score = 0;
+      document.getElementById("score").textContent = "分數：0";
+      gameInterval = null;
+    }
   </script>
 
 </body>
