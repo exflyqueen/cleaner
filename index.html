@@ -2,264 +2,79 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>高雄市立大同醫院互動網頁</title>
+  <title>醫院清潔任務遊戲</title>
   <style>
     body {
+      font-family: "Arial", sans-serif;
+      background-color: #f0f0f0;
       margin: 0;
-      font-family: sans-serif;
-      background: repeating-linear-gradient(
-        rgba(255, 255, 255, 0.8),
-        rgba(255, 255, 255, 0.8) 100px
-      ),
-      url('LOGO.jpg');
-      background-size: 150px auto;
-      background-repeat: repeat;
     }
-    section {
-      padding: 60px 20px;
-      text-align: center;
-    }
-    video {
-      max-width: 90%;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    }
-    .separator {
+
+    #game-area {
       width: 100%;
-      height: 40px;
-      background: url('flower.png') repeat-x center;
-      background-size: auto 40px;
-      margin: 40px 0;
-    }
-    .question-box {
-      background: #fff;
-      padding: 20px;
-      margin: 20px auto;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      display: inline-block;
-      text-align: left;
-    }
-    .question-box h3 {
-      margin-top: 0;
-    }
-    .game-container {
+      height: 600px;
+      background: url('hospital-room.jpg') center/cover no-repeat;
       position: relative;
-      width: 100%;
-      height: 300px;
-      background: #eef;
       overflow: hidden;
     }
-    #character {
-      width: 60px;
+
+    .item, #cleaner {
       position: absolute;
-      bottom: 0;
+      cursor: grab;
+    }
+
+    #cleaner {
+      width: 100px;
+      bottom: 20px;
       left: 50px;
+      transition: all 0.3s ease;
     }
-    .obstacle {
-      position: absolute;
-      bottom: 0;
-      width: 50px;
-      height: 50px;
+
+    .item {
+      width: 60px;
     }
-    #startBtn, #restartBtn {
-      padding: 10px 20px;
-      margin: 20px 10px;
-      font-size: 16px;
-    }
-    #qaModal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    #qaModal .modal-content {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      max-width: 400px;
+
+    #message {
       text-align: center;
-    }
-    .option-btn {
-      display: block;
-      margin: 10px auto;
-      padding: 10px 20px;
+      margin: 20px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
 
-<section>
-  <h1>🎬 影片</h1>
-  <video controls>
-    <source src="video.mp4" type="video/mp4">
-    您的瀏覽器不支援影片播放。
-  </video>
-</section>
+<h2 style="text-align:center;">🏥 清潔任務：今日工作開始</h2>
+<div id="message">請將物品拖曳至清潔員身上完成任務！</div>
 
-<div class="separator"></div>
-
-<section>
-  <h2>📘 問答</h2>
-  <div class="question-box">
-    <h3>以下哪一項是正確的手部衛生方式？</h3>
-    <button class="option-btn">只在吃東西前洗手</button>
-    <button class="option-btn">每次如廁後都洗手 ✅</button>
-    <button class="option-btn">每天只洗一次手</button>
-  </div>
-</section>
-
-<div class="separator"></div>
-
-<section>
-  <h2>🎮 跳躍遊戲</h2>
-  <button id="startBtn">開始遊戲</button>
-  <button id="restartBtn" style="display:none;">重新開始</button>
-  <div class="game-container" id="gameArea">
-    <img id="character" src="cleaner-boy.png">
-  </div>
-</section>
-
-<!-- 問答模態視窗 -->
-<div id="qaModal">
-  <div class="modal-content">
-    <h3>問答</h3>
-    <p>請問哪個是正確的垃圾分類方式？</p>
-    <button onclick="checkAnswer(true)" class="option-btn">血棉球丟入醫療廢棄物 ✅</button>
-    <button onclick="checkAnswer(false)" class="option-btn">所有垃圾都丟入資源回收桶</button>
-  </div>
+<div id="game-area">
+  <img id="cleaner" src="cleaner-boy.png" alt="清潔員">
+  <img src="tissue.png" class="item" style="top: 100px; left: 300px;" data-task="清除衛生紙">
+  <img src="mop.png" class="item" style="top: 250px; left: 500px;" data-task="拖地">
+  <img src="bed.png" class="item" style="top: 400px; left: 700px;" data-task="清潔病床">
 </div>
 
 <script>
-  const gameArea = document.getElementById('gameArea');
-  const character = document.getElementById('character');
-  const startBtn = document.getElementById('startBtn');
-  const restartBtn = document.getElementById('restartBtn');
-  const qaModal = document.getElementById('qaModal');
+  const cleaner = document.getElementById('cleaner');
+  const items = document.querySelectorAll('.item');
+  const message = document.getElementById('message');
 
-  let jumping = false;
-  let gameRunning = false;
-  let obstacleInterval;
-  let obstacleSpeed = 1.5; // 降低速度
-  let continueAfterQA = false;
+  items.forEach(item => {
+    item.draggable = true;
 
-  function jump() {
-    if (jumping) return;
-    jumping = true;
-    let position = 0;
-    const jumpUp = setInterval(() => {
-      if (position >= 100) {
-        clearInterval(jumpUp);
-        const fallDown = setInterval(() => {
-          if (position <= 0) {
-            clearInterval(fallDown);
-            jumping = false;
-          } else {
-            position -= 5;
-            character.style.bottom = position + "px";
-          }
-        }, 20);
-      } else {
-        position += 5;
-        character.style.bottom = position + "px";
-      }
-    }, 20);
-  }
-
-  function startGame() {
-    startBtn.style.display = 'none';
-    restartBtn.style.display = 'inline-block';
-    gameRunning = true;
-    createObstacle();
-    document.addEventListener('keydown', jump);
-  }
-
-  function endGame() {
-    gameRunning = false;
-    document.removeEventListener('keydown', jump);
-    clearInterval(obstacleInterval);
-    alert('遊戲結束');
-  }
-
-  function restartGame() {
-    location.reload();
-  }
-
-  function createObstacle() {
-    obstacleInterval = setInterval(() => {
-      if (!gameRunning) return;
-      const obstacle = document.createElement('img');
-      const trashImages = ['trash2.png', 'trash3.png', 'trash4.png'];
-      obstacle.src = trashImages[Math.floor(Math.random() * trashImages.length)];
-      obstacle.className = 'obstacle';
-      obstacle.style.left = '100%';
-      gameArea.appendChild(obstacle);
-
-      let left = 100;
-      const move = setInterval(() => {
-        if (!gameRunning) {
-          clearInterval(move);
-          return;
-        }
-
-        if (continueAfterQA) {
-          continueAfterQA = false;
-          gameArea.removeChild(obstacle);
-          clearInterval(move);
-          return;
-        }
-
-        left -= obstacleSpeed;
-        obstacle.style.left = left + '%';
-
-        const characterBottom = parseInt(character.style.bottom.replace("px", ""));
-        if (left < 12 && left > 5 && characterBottom < 50) {
-          // 碰撞
-          clearInterval(move);
-          showQA();
-          gameArea.removeChild(obstacle);
-        }
-
-        if (left <= -10) {
-          clearInterval(move);
-          gameArea.removeChild(obstacle);
-        }
-      }, 30);
-    }, 2000);
-  }
-
-  function showQA() {
-    gameRunning = false;
-    qaModal.style.display = 'flex';
-  }
-
-  function checkAnswer(correct) {
-    if (correct) {
-      continueAfterQA = true;
-      gameRunning = true;
-      qaModal.style.display = 'none';
-    } else {
-      qaModal.style.display = 'none';
-      endGame();
-    }
-  }
-
-  // 問答選項互動
-  const quizButtons = document.querySelectorAll(".question-box .option-btn");
-  quizButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (btn.innerText.includes("✅")) {
-        alert("答對了！");
-      } else {
-        alert("答錯了！");
-      }
+    item.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", item.dataset.task);
     });
   });
 
-  startBtn.addEventListener("click", startGame);
-  restartBtn.addEventListener("click", restartGame);
+  cleaner.addEventListener("dragover", (e) => {
+    e.preventDefault();
+  });
+
+  cleaner.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const task = e.dataTransfer.getData("text/plain");
+    message.innerText = `✅ 已完成：${task}`;
+  });
 </script>
 
 </body>
