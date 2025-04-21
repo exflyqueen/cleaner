@@ -1,61 +1,46 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>醫院互動網頁</title>
+  <meta charset="UTF-8">
+  <title>醫院主題網頁</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
-      background: url('LOGO.jpg');
-      background-repeat: repeat;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-image: url('LOGO.jpg');
       background-size: 200px;
+      background-repeat: repeat;
       opacity: 0.95;
     }
-    h1 {
-      margin-top: 40px;
+    .section {
+      padding: 30px;
+      background-color: rgba(255, 255, 255, 0.9);
+      margin: 30px auto;
+      max-width: 800px;
+      border-radius: 15px;
     }
-    video {
-      max-width: 90%;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    .flower-divider {
+      width: 100%;
+      display: block;
+      margin: 30px auto;
     }
-    .divider {
-      margin: 40px auto;
+    h2 {
+      text-align: center;
     }
-    .question-section {
-      background: #fff;
-      padding: 20px;
-      margin: 20px auto;
-      max-width: 600px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .game-container {
-      position: relative;
-      width: 800px;
-      height: 300px;
+    #gameCanvas {
+      display: block;
       margin: 0 auto;
-      background: #e6f7ff;
-      overflow: hidden;
-      border: 2px solid #999;
-      border-radius: 10px;
+      background: #d0f0ff;
+      border: 2px solid #000;
     }
-    #player {
-      position: absolute;
-      bottom: 0;
-      width: 60px;
-      height: 60px;
-    }
-    .obstacle {
-      position: absolute;
-      bottom: 0;
-      width: 40px;
-      height: 40px;
-    }
-    button {
+    #quiz {
+      display: none;
+      text-align: center;
       margin-top: 20px;
+    }
+    #choices button {
+      display: block;
+      margin: 10px auto;
       padding: 10px 20px;
       font-size: 16px;
     }
@@ -63,133 +48,147 @@
 </head>
 <body>
 
-  <h1>影片 🎬</h1>
-  <video controls>
-    <source src="video.mp4" type="video/mp4">
-    您的瀏覽器不支援影片播放。
-  </video>
-
-  <div class="divider">
-    <img src="flower.png" alt="分隔圖" width="200">
+  <!-- 影片區塊 -->
+  <div class="section">
+    <h2>📹 介紹影片</h2>
+    <video src="your-video.mp4" controls width="100%"></video>
   </div>
 
-  <h1>問答 📖</h1>
-  <div class="question-section">
-    <p id="question">以下哪一種物品屬於醫療廢棄物？</p>
-    <button onclick="checkAnswer('A')">A. 沾血棉花球</button>
-    <button onclick="checkAnswer('B')">B. 空水瓶</button>
-    <p id="result"></p>
+  <img class="flower-divider" src="flower.png" alt="花朵分隔線">
+
+  <!-- 問答區塊 -->
+  <div class="section">
+    <h2>🧠 問答</h2>
+    <p>以下哪一項是清潔人員在醫院中最常處理的垃圾之一？</p>
+    <ul>
+      <li>🔘 咖啡渣</li>
+      <li>🔘 用過的衛生紙</li>
+      <li>🔘 零錢</li>
+      <li>🔘 書本</li>
+    </ul>
   </div>
 
-  <div class="divider">
-    <img src="flower.png" alt="分隔圖" width="200">
-  </div>
+  <img class="flower-divider" src="flower.png" alt="花朵分隔線">
 
-  <h1>遊戲 👟</h1>
-  <div class="game-container" id="game">
-    <img id="player" src="cleaner-boy.png" style="left: 50px;">
+  <!-- 跳躍遊戲區塊 -->
+  <div class="section">
+    <h2>🕹️ 清潔員大冒險</h2>
+    <canvas id="gameCanvas" width="800" height="200"></canvas>
+
+    <div id="quiz">
+      <h2>問答時間</h2>
+      <p id="question">這是題目</p>
+      <div id="choices">
+        <button onclick="checkAnswer(0)">選項 A</button>
+        <button onclick="checkAnswer(1)">選項 B</button>
+        <button onclick="checkAnswer(2)">選項 C</button>
+        <button onclick="checkAnswer(3)">選項 D</button>
+      </div>
+    </div>
   </div>
-  <button onclick="startGame()">開始遊戲</button>
-  <p id="score">分數: 0</p>
 
   <script>
-    let gameStarted = false;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const character = new Image();
+    character.src = 'cleaner-boy.png';
+
+    const obstacles = [
+      { img: new Image(), x: 800 },
+      { img: new Image(), x: 1200 },
+      { img: new Image(), x: 1600 }
+    ];
+    obstacles[0].img.src = 'trash2.png';
+    obstacles[1].img.src = 'trash3.png';
+    obstacles[2].img.src = 'trash4.png';
+
+    let charX = 50, charY = 150, charW = 40, charH = 50;
+    let velocityY = 0, gravity = 1;
     let jumping = false;
-    let score = 0;
-    let gameInterval;
-    let player = document.getElementById('player');
-    let game = document.getElementById('game');
+    let isPaused = false;
 
-    function jump() {
-      if (jumping) return;
-      jumping = true;
-      let jumpHeight = 100;
-      let up = 0;
-      let jumpUp = setInterval(() => {
-        if (up >= jumpHeight) {
-          clearInterval(jumpUp);
-          let down = setInterval(() => {
-            if (up <= 0) {
-              clearInterval(down);
-              jumping = false;
-            } else {
-              up -= 5;
-              player.style.bottom = up + 'px';
-            }
-          }, 20);
-        } else {
-          up += 5;
-          player.style.bottom = up + 'px';
-        }
-      }, 20);
-    }
+    const quizData = [
+      {
+        question: "哪一項不是醫院常見的垃圾？",
+        choices: ["止血棉花球", "用過的衛生紙", "咖啡杯", "藥物包裝"],
+        correct: 2
+      },
+      {
+        question: "誰是負責清潔醫院環境的重要角色？",
+        choices: ["醫生", "護士", "清潔員", "志工"],
+        correct: 2
+      }
+    ];
+    let currentQuiz = 0;
 
-    function startGame() {
-      if (gameStarted) return;
-      gameStarted = true;
-      score = 0;
-      document.getElementById('score').textContent = "分數: " + score;
-
-      document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') jump();
+    function showQuiz() {
+      isPaused = true;
+      document.getElementById("quiz").style.display = "block";
+      document.getElementById("question").textContent = quizData[currentQuiz].question;
+      const buttons = document.querySelectorAll("#choices button");
+      buttons.forEach((btn, i) => {
+        btn.textContent = quizData[currentQuiz].choices[i];
       });
-
-      gameInterval = setInterval(() => {
-        let obstacle = document.createElement('img');
-        const obstacleImgs = ['trash2.png', 'trash3.png', 'trash4.png'];
-        obstacle.src = obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)];
-        obstacle.className = 'obstacle';
-        obstacle.style.left = '800px';
-        game.appendChild(obstacle);
-
-        let move = setInterval(() => {
-          let left = parseInt(obstacle.style.left);
-          if (left < -40) {
-            clearInterval(move);
-            obstacle.remove();
-            score++;
-            document.getElementById('score').textContent = "分數: " + score;
-          } else {
-            obstacle.style.left = (left - 5) + 'px';
-            let playerLeft = 50, playerRight = 110;
-            let obsLeft = left, obsRight = left + 40;
-            let playerBottom = parseInt(player.style.bottom);
-            if (
-              obsRight > playerLeft &&
-              obsLeft < playerRight &&
-              playerBottom < 40
-            ) {
-              clearInterval(move);
-              clearInterval(gameInterval);
-              triggerQuiz();
-              obstacle.remove();
-            }
-          }
-        }, 30);
-      }, 1500);
     }
 
-    function triggerQuiz() {
-      let answer = confirm("問答：哪一種是醫療廢棄物？\nA. 衛生紙\nB. 沾血棉花球");
-      if (answer) {
-        alert("答對了！繼續遊戲！");
-        gameStarted = false;
-        startGame();
+    function checkAnswer(index) {
+      const quiz = quizData[currentQuiz];
+      if (index === quiz.correct) {
+        document.getElementById("quiz").style.display = "none";
+        isPaused = false;
+        currentQuiz = (currentQuiz + 1) % quizData.length;
       } else {
-        alert("答錯了！遊戲結束！");
+        alert("答錯了，遊戲結束！");
+        location.reload();
       }
     }
 
-    function checkAnswer(ans) {
-      const result = document.getElementById('result');
-      if (ans === 'A') {
-        result.textContent = "答對了！";
-        result.style.color = "green";
-      } else {
-        result.textContent = "答錯了，再試試看！";
-        result.style.color = "red";
+    function updateGame() {
+      if (isPaused) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      velocityY += gravity;
+      charY += velocityY;
+      if (charY > 150) {
+        charY = 150;
+        velocityY = 0;
+        jumping = false;
       }
+
+      ctx.drawImage(character, charX, charY, charW, charH);
+
+      for (let obs of obstacles) {
+        obs.x -= 5;
+        if (obs.x < -40) {
+          obs.x = Math.random() * 500 + 800;
+        }
+        ctx.drawImage(obs.img, obs.x, 160, 40, 40);
+
+        if (
+          charX < obs.x + 40 &&
+          charX + charW > obs.x &&
+          charY < 200 &&
+          charY + charH > 160
+        ) {
+          showQuiz();
+        }
+      }
+
+      requestAnimationFrame(updateGame);
     }
+
+    window.addEventListener('keydown', function (e) {
+      if (e.code === "Space" && !jumping && !isPaused) {
+        velocityY = -15;
+        jumping = true;
+      }
+    });
+
+    character.onload = function () {
+      updateGame();
+    };
   </script>
 </body>
 </html>
