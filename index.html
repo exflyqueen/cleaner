@@ -1,194 +1,246 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>醫院主題網頁</title>
+  <meta charset="UTF-8" />
+  <title>醫院主題互動頁面</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background-image: url('LOGO.jpg');
-      background-size: 200px;
       background-repeat: repeat;
-      opacity: 0.95;
+      background-size: 200px auto;
+      background-position: center;
+      background-attachment: fixed;
+      background-blend-mode: lighten;
     }
+
     .section {
-      padding: 30px;
-      background-color: rgba(255, 255, 255, 0.9);
-      margin: 30px auto;
-      max-width: 800px;
-      border-radius: 15px;
+      padding: 40px 20px;
+      text-align: center;
+      background-color: rgba(255,255,255,0.8);
     }
-    .flower-divider {
+
+    .divider {
       width: 100%;
-      display: block;
-      margin: 30px auto;
+      height: 30px;
+      background: url('flower-divider.png') center/contain no-repeat;
+      margin: 20px 0;
     }
+
     h2 {
-      text-align: center;
+      font-size: 24px;
+      margin-bottom: 20px;
     }
-    #gameCanvas {
-      display: block;
-      margin: 0 auto;
-      background: #d0f0ff;
-      border: 2px solid #000;
+
+    /* 問答樣式 */
+    #quiz, #game-quiz {
+      background-color: #fff;
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 600px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
     }
-    #quiz {
-      display: none;
-      text-align: center;
-      margin-top: 20px;
-    }
-    #choices button {
-      display: block;
-      margin: 10px auto;
+
+    button {
+      margin: 10px;
       padding: 10px 20px;
       font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* 跳躍遊戲區 */
+    #game-container {
+      width: 600px;
+      height: 200px;
+      margin: 0 auto;
+      background: #cce;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #cleaner-boy {
+      width: 50px;
+      height: 50px;
+      background: url('cleaner-boy.png') no-repeat center/cover;
+      position: absolute;
+      bottom: 0;
+      left: 50px;
+    }
+
+    .obstacle {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      bottom: 0;
+    }
+
+    #controls {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
-  <!-- 影片區塊 -->
+  <!-- 影片區 -->
   <div class="section">
     <h2>📹 介紹影片</h2>
-    <video src="your-video.mp4" controls width="100%"></video>
+    <video width="600" controls>
+      <source src="video.mp4" type="video/mp4" />
+      您的瀏覽器不支援影片播放。
+    </video>
   </div>
 
-  <img class="flower-divider" src="flower.png" alt="花朵分隔線">
+  <div class="divider"></div>
 
-  <!-- 問答區塊 -->
+  <!-- 問答一 -->
   <div class="section">
-    <h2>🧠 問答</h2>
-    <p>以下哪一項是清潔人員在醫院中最常處理的垃圾之一？</p>
-    <ul>
-      <li>🔘 咖啡渣</li>
-      <li>🔘 用過的衛生紙</li>
-      <li>🔘 零錢</li>
-      <li>🔘 書本</li>
-    </ul>
-  </div>
-
-  <img class="flower-divider" src="flower.png" alt="花朵分隔線">
-
-  <!-- 跳躍遊戲區塊 -->
-  <div class="section">
-    <h2>🕹️ 清潔員大冒險</h2>
-    <canvas id="gameCanvas" width="800" height="200"></canvas>
-
+    <h2>📖 問答</h2>
     <div id="quiz">
-      <h2>問答時間</h2>
-      <p id="question">這是題目</p>
-      <div id="choices">
-        <button onclick="checkAnswer(0)">選項 A</button>
-        <button onclick="checkAnswer(1)">選項 B</button>
-        <button onclick="checkAnswer(2)">選項 C</button>
-        <button onclick="checkAnswer(3)">選項 D</button>
-      </div>
+      <p>護理師每天平均照顧幾位病人？</p>
+      <button onclick="checkAnswer(this, true)">A. 5~8人</button>
+      <button onclick="checkAnswer(this, false)">B. 10~15人</button>
+      <button onclick="checkAnswer(this, false)">C. 20人以上</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 跳躍遊戲區 -->
+  <div class="section">
+    <h2>🎮 跳躍遊戲</h2>
+    <div id="game-container">
+      <div id="cleaner-boy"></div>
+    </div>
+    <div id="controls">
+      <button onclick="startGame()">開始遊戲</button>
+      <button onclick="restartGame()">重玩</button>
+    </div>
+
+    <div id="game-quiz" style="display:none;">
+      <h3>問答時間</h3>
+      <p>請問以下哪一項屬於醫療廢棄物？</p>
+      <button onclick="answerGameQuiz(true)">A. 沾血棉花</button>
+      <button onclick="answerGameQuiz(false)">B. 回收寶特瓶</button>
+      <button onclick="answerGameQuiz(false)">C. 餐廳廚餘</button>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const character = new Image();
-    character.src = 'cleaner-boy.png';
-
-    const obstacles = [
-      { img: new Image(), x: 800 },
-      { img: new Image(), x: 1200 },
-      { img: new Image(), x: 1600 }
-    ];
-    obstacles[0].img.src = 'trash2.png';
-    obstacles[1].img.src = 'trash3.png';
-    obstacles[2].img.src = 'trash4.png';
-
-    let charX = 50, charY = 150, charW = 40, charH = 50;
-    let velocityY = 0, gravity = 1;
-    let jumping = false;
-    let isPaused = false;
-
-    const quizData = [
-      {
-        question: "哪一項不是醫院常見的垃圾？",
-        choices: ["止血棉花球", "用過的衛生紙", "咖啡杯", "藥物包裝"],
-        correct: 2
-      },
-      {
-        question: "誰是負責清潔醫院環境的重要角色？",
-        choices: ["醫生", "護士", "清潔員", "志工"],
-        correct: 2
-      }
-    ];
-    let currentQuiz = 0;
-
-    function showQuiz() {
-      isPaused = true;
-      document.getElementById("quiz").style.display = "block";
-      document.getElementById("question").textContent = quizData[currentQuiz].question;
-      const buttons = document.querySelectorAll("#choices button");
-      buttons.forEach((btn, i) => {
-        btn.textContent = quizData[currentQuiz].choices[i];
-      });
-    }
-
-    function checkAnswer(index) {
-      const quiz = quizData[currentQuiz];
-      if (index === quiz.correct) {
-        document.getElementById("quiz").style.display = "none";
-        isPaused = false;
-        currentQuiz = (currentQuiz + 1) % quizData.length;
+    // 問答邏輯
+    function checkAnswer(button, correct) {
+      if (correct) {
+        alert("答對了！");
       } else {
-        alert("答錯了，遊戲結束！");
-        location.reload();
+        alert("答錯了，再試一次！");
       }
     }
 
-    function updateGame() {
-      if (isPaused) return;
+    // 跳躍遊戲邏輯
+    let cleaner = null;
+    let obstacles = [];
+    let gameLoopId;
+    let gamePaused = false;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      velocityY += gravity;
-      charY += velocityY;
-      if (charY > 150) {
-        charY = 150;
-        velocityY = 0;
-        jumping = false;
-      }
-
-      ctx.drawImage(character, charX, charY, charW, charH);
-
-      for (let obs of obstacles) {
-        obs.x -= 5;
-        if (obs.x < -40) {
-          obs.x = Math.random() * 500 + 800;
-        }
-        ctx.drawImage(obs.img, obs.x, 160, 40, 40);
-
-        if (
-          charX < obs.x + 40 &&
-          charX + charW > obs.x &&
-          charY < 200 &&
-          charY + charH > 160
-        ) {
-          showQuiz();
-        }
-      }
-
-      requestAnimationFrame(updateGame);
+    function startGame() {
+      cleaner = document.getElementById("cleaner-boy");
+      cleaner.style.bottom = "0px";
+      gamePaused = false;
+      obstacles.forEach(obs => obs.remove());
+      obstacles = [];
+      spawnObstacle();
+      gameLoopId = requestAnimationFrame(gameLoop);
     }
 
-    window.addEventListener('keydown', function (e) {
-      if (e.code === "Space" && !jumping && !isPaused) {
-        velocityY = -15;
-        jumping = true;
+    function restartGame() {
+      location.reload();
+    }
+
+    function spawnObstacle() {
+      if (gamePaused) return;
+      const obstacle = document.createElement("div");
+      obstacle.classList.add("obstacle");
+      const images = ["trash2.png", "trash3.png", "trash4.png"];
+      obstacle.style.background = `url('${images[Math.floor(Math.random() * 3)]}') no-repeat center/cover`;
+      obstacle.style.left = "600px";
+      document.getElementById("game-container").appendChild(obstacle);
+      obstacles.push(obstacle);
+      setTimeout(spawnObstacle, 2000 + Math.random() * 1000);
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.code === "Space" && !gamePaused) {
+        jump();
       }
     });
 
-    character.onload = function () {
-      updateGame();
-    };
+    function jump() {
+      if (!cleaner || gamePaused) return;
+      let bottom = 0;
+      let up = setInterval(() => {
+        if (bottom >= 100) {
+          clearInterval(up);
+          let down = setInterval(() => {
+            if (bottom <= 0) {
+              clearInterval(down);
+            } else {
+              bottom -= 5;
+              cleaner.style.bottom = bottom + "px";
+            }
+          }, 20);
+        } else {
+          bottom += 5;
+          cleaner.style.bottom = bottom + "px";
+        }
+      }, 20);
+    }
+
+    function gameLoop() {
+      if (gamePaused) return;
+
+      obstacles.forEach((obs, index) => {
+        let currentLeft = parseInt(obs.style.left);
+        obs.style.left = (currentLeft - 5) + "px";
+
+        if (currentLeft < 0) {
+          obs.remove();
+          obstacles.splice(index, 1);
+        }
+
+        // 碰撞判斷
+        const cleanerRect = cleaner.getBoundingClientRect();
+        const obsRect = obs.getBoundingClientRect();
+        if (
+          cleanerRect.right > obsRect.left &&
+          cleanerRect.left < obsRect.right &&
+          cleanerRect.bottom > obsRect.top &&
+          cleanerRect.top < obsRect.bottom
+        ) {
+          triggerGameQuiz();
+        }
+      });
+
+      gameLoopId = requestAnimationFrame(gameLoop);
+    }
+
+    function triggerGameQuiz() {
+      gamePaused = true;
+      cancelAnimationFrame(gameLoopId);
+      document.getElementById("game-quiz").style.display = "block";
+    }
+
+    function answerGameQuiz(correct) {
+      if (correct) {
+        document.getElementById("game-quiz").style.display = "none";
+        gamePaused = false;
+        requestAnimationFrame(gameLoop);
+      } else {
+        alert("答錯了，遊戲結束！");
+        cancelAnimationFrame(gameLoopId);
+      }
+    }
   </script>
 </body>
 </html>
