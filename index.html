@@ -1,81 +1,157 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>醫院清潔任務遊戲</title>
   <style>
     body {
-      font-family: "Arial", sans-serif;
-      background-color: #f0f0f0;
+      background-image: url('LOGO.jpg');
+      background-repeat: repeat;
+      background-size: 150px auto;
+      opacity: 0.95;
+      font-family: 'Arial', sans-serif;
       margin: 0;
     }
-
-    #game-area {
+    .section {
+      padding: 40px;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.85);
+    }
+    .divider {
       width: 100%;
-      height: 600px;
-      background: url('hospital-room.jpg') center/cover no-repeat;
+      height: 30px;
+      background: url('flower-divider.png') repeat-x center;
+      margin: 30px 0;
+      background-size: auto 30px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #444;
+    }
+    .video-wrapper iframe {
+      width: 80%;
+      height: 400px;
+    }
+    .quiz button {
+      margin: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    .game-canvas {
+      width: 800px;
+      height: 200px;
+      background: #e0f7fa;
       position: relative;
+      margin: auto;
       overflow: hidden;
     }
-
-    .item, #cleaner {
+    .character, .obstacle {
       position: absolute;
-      cursor: grab;
+      bottom: 0;
     }
-
-    #cleaner {
-      width: 100px;
-      bottom: 20px;
-      left: 50px;
-      transition: all 0.3s ease;
+    .character {
+      width: 50px;
     }
-
-    .item {
-      width: 60px;
+    .obstacle {
+      width: 40px;
+      animation: moveObstacle 6s linear infinite;
     }
-
-    #message {
-      text-align: center;
-      margin: 20px;
-      font-size: 18px;
+    @keyframes moveObstacle {
+      0% { left: 800px; }
+      100% { left: -40px; }
     }
   </style>
 </head>
 <body>
 
-<h2 style="text-align:center;">🏥 清潔任務：今日工作開始</h2>
-<div id="message">請將物品拖曳至清潔員身上完成任務！</div>
+  <div class="section video-wrapper">
+    <h2>📽 醫院清潔任務簡介</h2>
+    <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allowfullscreen></iframe>
+  </div>
 
-<div id="game-area">
-  <img id="cleaner" src="cleaner-boy.png" alt="清潔員">
-  <img src="tissue.png" class="item" style="top: 100px; left: 300px;" data-task="清除衛生紙">
-  <img src="mop.png" class="item" style="top: 250px; left: 500px;" data-task="拖地">
-  <img src="bed.png" class="item" style="top: 400px; left: 700px;" data-task="清潔病床">
-</div>
+  <div class="divider"></div>
 
-<script>
-  const cleaner = document.getElementById('cleaner');
-  const items = document.querySelectorAll('.item');
-  const message = document.getElementById('message');
+  <div class="section quiz">
+    <h2>🧠 問答</h2>
+    <p>請問清潔病房時最常使用的消毒用品是？</p>
+    <button onclick="checkAnswer(this, false)">洗手乳</button>
+    <button onclick="checkAnswer(this, true)">酒精</button>
+    <button onclick="checkAnswer(this, false)">優碘</button>
+  </div>
 
-  items.forEach(item => {
-    item.draggable = true;
+  <div class="divider"></div>
 
-    item.addEventListener("dragstart", (e) => {
-      e.dataTransfer.setData("text/plain", item.dataset.task);
+  <div class="section">
+    <h2>🕹 跳躍遊戲</h2>
+    <div class="game-canvas" id="gameCanvas">
+      <img src="cleaner-boy.png" class="character" id="character" style="left: 100px;" />
+      <img src="trash2.png" class="obstacle" style="left: 800px;" />
+    </div>
+    <button onclick="restartGame()">重新開始</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <h2>🧹 清潔任務遊戲</h2>
+    <p>請協助清潔員完成每日的消毒任務！</p>
+    <p>拖動拖把清潔病房、點擊護理站啟動任務，並注意轉床後是否需要再次擦床。</p>
+    <!-- 清潔遊戲示意區 -->
+    <div style="width: 80%; margin: auto; height: 300px; border: 1px solid #aaa; background: #fff;">
+      <!-- 模擬清潔物件 -->
+      <img src="mop.png" draggable="true" ondragstart="drag(event)" id="mop" style="width:100px; position:absolute; top:30px; left:50px;">
+      <div id="target" ondrop="drop(event)" ondragover="allowDrop(event)" style="width:150px;height:150px;position:absolute;top:100px;left:300px;background:#f8f8f8;border:2px dashed #ccc;">
+        拖到這裡清潔床位
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 問答邏輯
+    function checkAnswer(button, isCorrect) {
+      if (isCorrect) {
+        alert("答對了！繼續努力清潔任務！");
+      } else {
+        alert("答錯了！再加油！");
+      }
+    }
+
+    // 跳躍遊戲簡易邏輯
+    const character = document.getElementById("character");
+    let jumping = false;
+
+    document.addEventListener("keydown", function(e) {
+      if (e.code === "Space" && !jumping) {
+        jumping = true;
+        character.style.bottom = "100px";
+        setTimeout(() => {
+          character.style.bottom = "0";
+          jumping = false;
+        }, 500);
+      }
     });
-  });
 
-  cleaner.addEventListener("dragover", (e) => {
-    e.preventDefault();
-  });
+    function restartGame() {
+      // 可加入更多邏輯來重置跳躍遊戲
+      alert("遊戲重新開始！");
+    }
 
-  cleaner.addEventListener("drop", (e) => {
-    e.preventDefault();
-    const task = e.dataTransfer.getData("text/plain");
-    message.innerText = `✅ 已完成：${task}`;
-  });
-</script>
+    // 拖曳邏輯
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      ev.target.innerHTML = "✔ 清潔完成！";
+      document.getElementById(data).style.display = "none";
+    }
+  </script>
 
 </body>
 </html>
